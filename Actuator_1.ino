@@ -1,12 +1,108 @@
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
+#include <IRremote.h>
+
+
 #include "printf.h"
 RF24 radio(9, 10);
+
+#define IRLEDpin A5
+unsigned long on1=0b01010000000000001110000100000000; 
+unsigned long on2=0b10101111111111110001111011111111;
 int count=0;
 int L1,L2,L3=0,L4,L5,L6,L7=0,L8,L9;
 const uint64_t pipes[1] = {0xC2C2C2C2C6};
 void ack(char text[]);
+
+
+void IRsetup(void)
+{
+  pinMode(IRLEDpin, OUTPUT);
+  digitalWrite(IRLEDpin, LOW);
+}
+
+
+
+void IRcarrier(unsigned int IRtimemicroseconds)
+{
+  int i;
+  for(i=0; i<(IRtimemicroseconds / 50); i++)
+  {
+    digitalWrite(IRLEDpin, HIGH);
+    delayMicroseconds(25);
+    digitalWrite(IRLEDpin, LOW);
+    delayMicroseconds(25);
+  }
+}
+
+
+
+void IRsendCode(unsigned long code1,unsigned long code2)
+{
+  
+  
+  int i;
+  unsigned long c;
+  IRcarrier(6200);
+  delayMicroseconds(7400);
+
+
+  for (i=0; i<32; i++)
+  {
+      IRcarrier(600);
+      if (code1 & 0x80000000)
+        delayMicroseconds(3400);
+      else
+        delayMicroseconds(1400);
+      code1<<=1;
+  }
+  
+  for (i=0; i<32; i++)
+  {
+      IRcarrier(600);
+      if (code2 & 0x80000000)
+        delayMicroseconds(3400);
+      else
+        delayMicroseconds(1400);
+      code2<<=1;
+  }
+  //delayMicroseconds(440);
+  IRcarrier(600);
+  delayMicroseconds(7400);
+  IRcarrier(600);
+
+}
+
+void Command(String command)
+  {
+ 
+
+    if (command.equals("ON"))
+    {
+      IRsetup();
+      IRsendCode(on1,on2);
+    }
+    
+    /*else if (command.equals("OFF"))
+    {
+      IRsetup();
+      IRsendCode(off1,off2);
+    }
+
+    else if (command.equals("UP"))
+    {
+      IRsetup();
+      IRsendCode(up1,up2);
+    }
+
+    else if (command.equals("DOWN"))
+    {
+      IRsetup();
+      IRsendCode(down1,down2);
+    }*/
+    
+  }
 
 void ack(char index){
   //Serial.println("This is ack");
@@ -28,7 +124,7 @@ void execute(char data[]){
   for(int i=0;i<32;i++){
     //Serial.println(data[i]);
    // if(i<8)Serial.println(data[i]);
-    if(data[i]=='-')
+    if(data[i]=='.')
       index=i+1;
   }
  // Serial.println("index");
@@ -52,12 +148,17 @@ void execute(char data[]){
       i=i+3;
       //Serial.print(command[0]);
       //Serial.print(command[1]);
+      if (command[0]== 'c' and command[2]=='1'){
+        Command("ON");
+        }else{
       int light=(int)(command[1]-48);
       Serial.println(light);
       int state=(int)(command[2]-48);
       Serial.println(state);
       
       turn_on(light , state);
+
+        }
     }
       i=i+1;
   }
@@ -166,6 +267,9 @@ void setup()
   digitalWrite(A0,HIGH);
       delay(1000);
       digitalWrite(A0,LOW);
+
+  pinMode(IRLEDpin, OUTPUT);
+  digitalWrite(IRLEDpin, LOW);
 }
 
 void loop()
