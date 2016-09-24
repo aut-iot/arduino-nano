@@ -1,20 +1,26 @@
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
+#include "printf.h"
 #include <IRremote.h>
 
-
-#include "printf.h"
-RF24 radio(9, 10);
-
 #define IRLEDpin A5
+
+/*24
+01010000 00000000 00010001 00000000 10101111 11111111 11101110 11111111
+25
+01010000 00000000 10010001 00000000 10101111 11111111 01101110 11111111*/
+
+
+
 unsigned long on1=0b01010000000000001110000100000000; 
 unsigned long on2=0b10101111111111110001111011111111;
+RF24 radio(9, 10);
 int count=0;
 int L1,L2,L3=0,L4,L5,L6,L7=0,L8,L9;
 const uint64_t pipes[1] = {0xC2C2C2C2C6};
+const char node=1;
 void ack(char text[]);
-
 
 void IRsetup(void)
 {
@@ -73,6 +79,8 @@ void IRsendCode(unsigned long code1,unsigned long code2)
   IRcarrier(600);
 
 }
+
+
 
 void Command(String command)
   {
@@ -135,6 +143,9 @@ void execute(char data[]){
   int a=0;
   //char node_id;
   char command[3];
+  if(node!=node_id){
+    return;
+  }
   while(i<index){
     a=0;
     if(data[i]=='@'){
@@ -148,17 +159,18 @@ void execute(char data[]){
       i=i+3;
       //Serial.print(command[0]);
       //Serial.print(command[1]);
-      if (command[0]== 'c' and command[2]=='1'){
+      if(command[0] == 'c' and command[2]=='1'){
+        Serial.println("IR_SEND");
         Command("ON");
-        }else{
+        
+      }else{
       int light=(int)(command[1]-48);
       Serial.println(light);
       int state=(int)(command[2]-48);
       Serial.println(state);
       
       turn_on(light , state);
-
-        }
+      }
     }
       i=i+1;
   }
@@ -267,9 +279,6 @@ void setup()
   digitalWrite(A0,HIGH);
       delay(1000);
       digitalWrite(A0,LOW);
-
-  pinMode(IRLEDpin, OUTPUT);
-  digitalWrite(IRLEDpin, LOW);
 }
 
 void loop()
