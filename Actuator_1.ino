@@ -292,7 +292,7 @@ void loop()
     char text[32] = {0};  
     radio.read(&text, sizeof(text));
     Serial.println(text);
-    ack(text[1]);
+    ack(node);
     execute(text);
     //digitalWrite(3,HIGH);
     //delay(1000);
