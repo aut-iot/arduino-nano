@@ -19,7 +19,7 @@ RF24 radio(9, 10);
 int count=0;
 int L1,L2,L3=0,L4,L5,L6,L7=0,L8,L9;
 const uint64_t pipes[1] = {0xC2C2C2C2C6};
-const char node='1';
+const char node='2';
 void ack(char text[]);
 
 void IRsetup(void)
