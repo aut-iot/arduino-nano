@@ -173,6 +173,7 @@ void execute(char data[]){
       Serial.println(state);
       
       turn_on(light , state);
+       ack(node);
       }
     }
       i=i+1;
@@ -295,7 +296,7 @@ void loop()
     char text[32] = {0};  
     radio.read(&text, sizeof(text));
     Serial.println(text);
-    ack(node);
+   
     execute(text);
     //digitalWrite(3,HIGH);
     //delay(1000);
